@@ -45,7 +45,7 @@ def main():
                 
                 # --- DEBUG/ECHO FEATURE START ---
                 # Print the received command to the local terminal
-                print(f"\\n[RECEIVED COMMAND]: {command}")
+                print(f"[RECEIVED COMMAND]: {command}")
                 # --- DEBUG/ECHO FEATURE END ---
 
                 # Execute command
