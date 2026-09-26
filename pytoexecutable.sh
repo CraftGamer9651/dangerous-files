@@ -1,34 +1,35 @@
 #!/bin/bash
-set -e
 
-echo "========================================="
-echo " PyInstaller Interactive Bundler (Unix) "
-echo "========================================="
+echo "========================================"
+echo "Python to Executable Builder"
+echo "========================================"
+echo
 
-# 1. Ask the user for the filename
-read -p "Enter the Python filename (default: main.py): " SCRIPT_NAME
+read -p "Enter the Python file name (example: main.py): " PYFILE
 
-# Use default if input is empty
-SCRIPT_NAME="${SCRIPT_NAME:-main.py}"
-
-# Verify the file actually exists before proceeding
-if [ ! -f "$SCRIPT_NAME" ]; then
-    echo "❌ Error: File '$SCRIPT_NAME' not found in this directory!"
+if [ ! -f "$PYFILE" ]; then
+    echo
+    echo "ERROR: File '$PYFILE' was not found."
     exit 1
 fi
 
-# 2. Check and install PyInstaller if missing
-if ! command -v pyinstaller &> /dev/null; then
-    echo "PyInstaller not found. Installing..."
-    pip install pyinstaller
-else
-    echo "PyInstaller is already installed."
+echo
+echo "Installing/updating PyInstaller..."
+python3 -m pip install --upgrade pyinstaller
+
+echo
+echo "Building '$PYFILE'..."
+
+python3 -m PyInstaller --onefile "$PYFILE"
+
+if [ $? -ne 0 ]; then
+    echo
+    echo "ERROR: Build failed."
+    exit 1
 fi
 
-# 3. Run PyInstaller
-echo "Compiling $SCRIPT_NAME into a standalone binary..."
-pyinstaller --onefile "$SCRIPT_NAME"
-
-echo "========================================="
-echo " 🎉 Success! Your executable is in the 'dist' folder."
-echo "========================================="
+echo
+echo "========================================"
+echo "Build successful!"
+echo "Executable is in the 'dist' folder."
+echo "========================================"
