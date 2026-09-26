@@ -3,6 +3,7 @@ import sys
 import subprocess
 import shutil
 import platform
+import pyperclip
 
 # Template for the server code. Note the placeholder {SERVER_PORT_PLACEHOLDER}.
 SERVER_CODE_TEMPLATE = """import socket
@@ -120,7 +121,12 @@ def main():
         f.write(final_server_code)
         
     print(f"[+] Created {script_path}")
-    print(f"\n[!] To run the server: {python_cmd} {script_path}")
+
+    run_command = f"{python_cmd} {script_path}"
+    print(f"\n[!] To run the server: {run_command}")
+    pyperclip.copy(run_command)
+    print("Run command copied to clipboard")
+
     print(f"[!] Ensure your firewall allows incoming connections on port {port}.")
     
     if platform.system() == "Windows":
