@@ -3,8 +3,8 @@
 ### RAT Python scripts
 #### `build_rat.py` (Automatic installation)
 Run this on the server PC, it will create four executable files.
-Windows: dist/system_helper.exe and dist/control_panel.exe
-Mac/Linux: dist/system_helper and dist/control_panel
+Windows: `dist/system_helper.exe` and `dist/control_panel.exe`
+Mac/Linux: `dist/system_helper` and `dist/control_panel`
 
 Run these on their corresponding system.
 
