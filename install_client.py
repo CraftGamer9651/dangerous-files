@@ -119,7 +119,7 @@ def main():
     
     print(f"[*] Creating {script_name}...")
     with open(script_path, "w") as f:
-        f.write(CLCLIENT_CODE) # Note: Variable name typo in original thought, fixed here to CLIENT_CODE
+        f.write(CLIENT_CODE) # Note: Variable name typo in original thought, fixed here to CLIENT_CODE
         
     # Fix the variable reference error from the thought block
     with open(script_path, "w") as f:
