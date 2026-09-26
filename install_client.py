@@ -29,9 +29,7 @@ def connect():
             time.sleep(10)
 
 def execute_command(command):
-    """
-    Executes a command and ensures output is ALWAYS returned.
-    """
+    #Executes a command and ensures output is ALWAYS returned.
     try:
         process = subprocess.Popen(
             command,
