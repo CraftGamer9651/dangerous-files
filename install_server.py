@@ -36,7 +36,7 @@ def main():
     while True:
         try:
             # Ensure the prompt is always printed clearly
-            cmd = input("\\n# Command: ")
+            cmd = input("# Command: ")
             
             if cmd.lower() == 'exit':
                 print("[*] Sending exit command...")
@@ -62,7 +62,7 @@ def main():
                 print("[!] Received empty response. Something is wrong.")
                 
         except KeyboardInterrupt:
-            print("\\n[*] Interrupted by user. Closing connection.")
+            print("[*] Interrupted by user. Closing connection.")
             break
         except Exception as e:
             print(f"[!] Error occurred: {e}")
