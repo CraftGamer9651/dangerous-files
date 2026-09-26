@@ -219,7 +219,7 @@ def build_local(name, source_code):
     except:
         print(f"[-] Native build failed for {name}.")
         if os.path.exists(f"{name}_source.py"):
-            os.remove(f"{name}_source.py)
+            os.remove(f"{name}_source.py")
         return False
 
 def main():
