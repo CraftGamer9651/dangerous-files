@@ -1,41 +1,38 @@
 @echo off
-setlocal enabledelayedexpansion
+setlocal
 
-echo =========================================
-echo  PyInstaller Interactive Bundler (Windows)
-echo =========================================
+echo ========================================
+echo Python to Executable Builder
+echo ========================================
+echo.
 
-:: 1. Ask the user for the filename
-set /p SCRIPT_NAME="Enter the Python filename (default: main.py): "
+set /p PYFILE=Enter the Python file name (example: main.py): 
 
-:: Use default if input is empty
-if "%SCRIPT_NAME%"=="" set SCRIPT_NAME=main.py
-
-:: Verify the file actually exists before proceeding
-if not exist "%SCRIPT_NAME%" (
-    echo 0x07
-    echo 0x07
-    echo 0x07
-    echo ❌ Error: File '%SCRIPT_NAME%' not found in this directory!
-    goto end
+if not exist "%PYFILE%" (
+    echo.
+    echo ERROR: File "%PYFILE%" was not found.
+    pause
+    exit /b 1
 )
 
-:: 2. Check and install PyInstaller if missing
-where pyinstaller >nul 2>nul
-if %errorlevel% neq 0 (
-    echo PyInstaller not found. Installing...
-    pip install pyinstaller
-) else (
-    echo PyInstaller is already installed.
+echo.
+echo Installing/updating PyInstaller...
+python -m pip install --upgrade pyinstaller
+
+echo.
+echo Building "%PYFILE%"...
+python -m PyInstaller --onefile "%PYFILE%"
+
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo ERROR: Build failed.
+    pause
+    exit /b 1
 )
 
-:: 3. Run PyInstaller
-echo Compiling %SCRIPT_NAME% into a standalone binary...
-pyinstaller --onefile "%SCRIPT_NAME%"
-
-echo =========================================
-echo  🎉 Success! Your executable is in the 'dist' folder.
-echo =========================================
-
-:end
+echo.
+echo ========================================
+echo Build successful!
+echo Executable is in the "dist" folder.
+echo ========================================
 pause
