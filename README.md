@@ -1,28 +1,30 @@
-## How to Use
+# DANGEROUS FILES
+## How to use the RAT
+### `build_all.py`
+A Python file that will build all of the files needed for the RAT. Move the file into its own folder and run it.\
+It will ask for the IP and port for the server PC. To find you PC's IP:\
+**Windows**: Open the terminal and run `ipconfig`.\
+**Mac/Linux**: Open the terminal and run `ifconfig`.\
+Look for a section saying something similar to:\
+Connection-specific DNS Suffix  . : home.local\
+Link-local IPv6 Address . . . . . : xxx::xxx:xxx:xxx:xxx%xx\
+IPv4 Address. . . . . . . . . . . : 192.168.1.xxx (Enter this)\
+Subnet Mask . . . . . . . . . . . : 255.255.255.0\
+Default Gateway . . . . . . . . . : 192.168.1.1 (Make sure there is an IP here)
 
-### RAT Python scripts
-#### `build_rat.py` (Automatic installation)
-Run this on the server PC, it will create four executable files.\
-Windows: `dist/system_helper.exe` and `dist/control_panel.exe`\
-Mac/Linux: `dist/system_helper` and `dist/control_panel`\
-Run these on their corresponding system.
+The Python script will ask for a port. The default `9999` will work, but if you know another service is using it, change it.\
+Once the build finishes, look in the `dist` folder for the `control_panel` and `system_helper`.
 
-#### `install_client.py`/`system_helper.py` (Manual installation)
-`install_client.py`:
-Installs the client Python file, asks for the target server IP address, and copies the run command to clipboard.\
-`system_helper.py`:
-Runs the target end of the RAT. Receives commands and sends back an output.
+### Setup
+Move the `system_helper` to the target PC and run it. Keep the `control_panel` on your PC and run it.\
+In a few seconds, they should connect, and you will be able to run terminal commands to the target PC from your PC.
 
-#### `install_server.py`/`control_panel.py` (Manual installation)
-`install_server.py`:
-Installs the server Python file, asks for the port to use, and copies the run command to clipboard.\
-`control_panel.py`:
-Runs the attacker end of the RAT. Sends commands and receives the output.
+## Python to executables
+These two files will convert any Python file to an executable that can be run on your device.
+### Limitations 
+If you are using a Windows PC, you will only be able to create Windows executables (`.exe` files).\
+If you are on Mac/Linux, you will only be able to make their executable files.
 
-### Python to executable scripts
-Both `pytoexecutable.bat` and `pytoexecutable.sh` convert the target Python file to a Windows EXE and Mac/Linux executable.\
-`pytoexecutable.bat` runs on Windows and `pytoexecutable.sh` runs on Mac/Linux.
-
-### ZIP bombs
-`zipbomb_10pb.zip` is a 19kb zip file that unzips to 10pb.\
-`zipbomb_4.5tb.zip` is a 15kb zip file that unzips to 4.5tb.
+## ZIP bombs
+These two ZIP files will completely extract to their labeled size (10 petabytes and 4.5 terabytes) from only 15-20 kilobytes.\
+If more sizes are requested, I will add them.
